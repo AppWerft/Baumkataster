@@ -1,0 +1,1 @@
+/Library/Application Support/Titanium/modules/commonjs/org.favo.promise/1.0.0/org.favo.promise.js
