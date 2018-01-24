@@ -19,7 +19,8 @@ module.exports = function(win) {
 	});
 	var marker = Map.createAnnotation({
 		latitude : 53.0,
-		longitude : 10.0,image: "/assets/images/null.png",
+		longitude : 10.0,
+		image : "/assets/images/null.png",
 		title : "Lade …"
 	});
 	mapView.addAnnotation(marker);
@@ -50,7 +51,7 @@ module.exports = function(win) {
 			marker.longitude = e.longitude;
 			marker.title = " Lade … ";
 			marker.subtitle = "";
-			
+
 			mapView.selectAnnotation(marker);
 			require("getTrees")({
 				latitude : e.latitude,
@@ -58,10 +59,14 @@ module.exports = function(win) {
 				latitudeDelta : 0.001,
 				longitudeDelta : 0.001
 			}, function(res) {
+				if (!res) {
+					mapView.deselectAnnotation(marker);
+					return;
+				}
 				console.log(res.length);
 				marker.title = res[0]["sorte_latein"];
 				marker.subtitle = res[0]["sorte_deutsch"];
-				
+
 				marker.latitude = res[0].latitude;
 				marker.longitude = res[0].longitude;
 			});
