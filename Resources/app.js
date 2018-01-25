@@ -84,5 +84,5 @@ win.addEventListener("open", win.updateListAndMap);
 win.open();
 container.scrollToView(mapView);
 setTimeout(function() {
-	require("importer")();
+	require("store").import();
 }, 2000);

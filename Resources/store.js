@@ -1,14 +1,15 @@
-var speciesSQL = "CREATE TABLE IF NOT EXISTS `species` (`sorte_latein` TEXT UNIQUE, `sorte_deutsch` TEXT, `gattung_latein` TEXT,`gattung_deutsch`  TEXT,  `art_latein`  TEXT, `art_deutsch`  TEXT)";
-var treesSQL = "CREATE TABLE IF NOT EXISTS `trees` (`baumid` NUMBER UNIQUE, latitude NUMBER,  longitude NUMBER, `sorte_latein`  TEXT, `kronendurchmesser`  TEXT, `stammumfang`  TEXT, `stand_bearbeitung`  TEXT, `pflanzjahr`  TEXT, `strasse`  TEXT, `hausnummer`  TEXT, `bezirk`  TEXT,`dist` NUMBER)";
+var dbFile = (Ti.Platform.name === 'android' && Ti.Filesystem.isExternalStoragePresent()) ? Ti.Filesystem.getFile(Ti.Filesystem.externalStorageDirectory + 'TREES.sqlite') : Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory + 'TREES.sqlite');
 
-var link = Ti.Database.open("TREES.sqlite");
-if (link) {
-	link.execute(speciesSQL);
-	link.execute(treesSQL);
-}
-link.close();
+var doImport = function() {
+	var speciesSQL = "CREATE TABLE IF NOT EXISTS `species` (`sorte_latein` TEXT UNIQUE, `sorte_deutsch` TEXT, `gattung_latein` TEXT,`gattung_deutsch`  TEXT,  `art_latein`  TEXT, `art_deutsch`  TEXT)";
+	var treesSQL = "CREATE TABLE IF NOT EXISTS `trees` (`baumid` NUMBER UNIQUE, latitude NUMBER,  longitude NUMBER, `sorte_latein`  TEXT, `kronendurchmesser`  TEXT, `stammumfang`  TEXT, `stand_bearbeitung`  TEXT, `pflanzjahr`  TEXT, `strasse`  TEXT, `hausnummer`  TEXT, `bezirk`  TEXT,`dist` NUMBER)";
 
-module.exports = function() {
+	var link = Ti.Database.open("TREES.sqlite");
+	if (link) {
+		link.execute(speciesSQL);
+		link.execute(treesSQL);
+	}
+	link.close();
 	var BB = {
 		minx : 53.39760784,
 		miny : 9.73143837,
@@ -30,49 +31,118 @@ module.exports = function() {
 	function getData() {
 
 		if (i < regions.length - 1) {
-			if (i < 1080) {
-				i++;
-				getData();
-				return;
-			}
+
 			require("getTrees")(regions[i], function(trees) {
 				i++;
 				console.log(trees.length + "     " + i + "/" + (regions.length - 1));
-
 				var link = Ti.Database.open("TREES.sqlite");
-				var species = {};
 				if (link) {
-					link.execute("BEGIN TRANSACTION");
+					link.execute("BEGIN");
 					trees.forEach(function(tree) {
 						link.execute("INSERT OR REPLACE INTO trees VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", tree.baumid, tree.latitude, tree.longitude, tree["sorte_latein"], tree.kronendurchmesser, tree.stammumfang, tree.stand_bearbeitung, tree.pflanzjahr, tree.strasse, tree.hausnummer, tree.bezirk, tree.dist);
+						link.execute("INSERT OR REPLACE INTO species VALUES (?,?,?,?,?,?)", tree["sorte_latein"], tree["sorte_deutsch"], tree["gattung_latein"], tree["gattung_deutsch"], tree["art_latein"], tree["art_deutsch"]);
 					});
 					link.execute("COMMIT");
-					link.execute("BEGIN TRANSACTION");
-					trees.forEach(function(tree) {
-						if (!species["sorte_latein"]) {
-							link.execute("INSERT OR REPLACE INTO species VALUES (?,?,?,?,?,?)", tree["sorte_latein"], tree["sorte_deutsch"], tree["gattung_latein"], tree["gattung_deutsch"], tree["art_latein"], tree["art_deutsch"]);
-							species["sorte_latein"] = 1;
-						}
-					});
-					link.execute("COMMIT");
-
-					console.log((link.file.size / 1000000).toFixed(3) );
+					link.close();
 				}
-				link.close();
-				getData();
 			});
+
+			console.log((link.file.size / 1000000).toFixed(3));
 		}
-	}
+
+		getData();
+
+	};
 
 	var i = 0;
-	//getData();
+	getData();
 	var link = Ti.Database.open("TREES.sqlite");
 
 	var foo = link.file;
+	link.close();
 	bar = Ti.Filesystem.getFile(Ti.Filesystem.externalStorageDirectory, "TREES.sqlite");
 	bar.write(foo.read());
-
-	link.close();
-	console.log(foo.nativePath);
-	console.log(bar.nativePath);
 };
+
+var isChached = function() {
+	return dbFile.exists();
+};
+
+var startCaching = function() {
+	var NappDownloadManager = require("dk.napp.downloadmanager");
+	NappDownloadManager.addDownload({
+		name : 'Hamburger Bäume',
+		url : 'https://github.com/AppWerft/Baumkataster/blob/master/TREES.sqlite?raw=true',
+		filePath : dbFile.nativePath,
+		priority : NappDownloadManager.DOWNLOAD_PRIORITY_NORMAL
+	});
+};
+
+var getTrees = function(region, cb) {
+	if (isCached()) {
+		var trees;
+		var link = Ti.Database.open("TREES.sqlite");
+		var res = link.execute("SELECT species.*,trees.* FROM species, trees WHERE trees.sorte_latein = species.sorte_latein AND trees.latitude");
+		while (res.isValidRow()) {
+			trees.push({
+				baumid : res.fieldByName('baumid')
+			});
+			res.next();
+		}
+		res.close();
+		link.close();
+	} else {
+		var WFS = require("ti.wfs").createWFS("https://geodienste.hamburg.de/HH_WFS_Strassenbaumkataster", "2.0.0");
+		WFS.getFeature({
+			region : region,
+			typeNames : "app:strassenbaumkataster",
+			limit : 2000
+		}, function(e) {
+			var trees = e.data["wfs:FeatureCollection"]["wfs:member"];
+			if (!trees) {
+				cb([]);
+				return;
+			}
+			if (!trees.list)
+				trees.list = [trees];
+			var mytrees = trees.list.map(function(tree) {
+				var t = tree["app:strassenbaumkataster"];
+				var latitude = t["app:geom"]["gml:Point"]["gml:pos"].split(" ")[0];
+				var longitude = t["app:geom"]["gml:Point"]["gml:pos"].split(" ")[1];
+
+				var ret = {
+					"baumid" : t["gml:id"].split("_")[2],
+					"gattung_latein" : t["app:gattung_latein"],
+					"gattung_deutsch" : t["app:gattung_deutsch"],
+					"art_latein" : t["app:art_latein"],
+					"art_latein" : t["app:art_latein"],
+					"sorte_latein" : t["app:sorte_latein"],
+					"sorte_deutsch" : t["app:sorte_deutsch"],
+					"stand_bearbeitung" : t["app:stand_bearbeitung"] || "",
+					kronendurchmesser : t["app:kronendmzahl"] || "",
+					stammumfang : t["app:stammumfangzahl"] || "",
+					strasse : t["app:strasse"] || "",
+					hausnummer : t["app:hausnummer"] || "",
+
+					bezirk : t["app:bezirk"] || "",
+					latitude : latitude,
+					longitude : longitude,
+					hausnummer : t["app:hausnummer"] || "",
+					pflanzjahr : t["app:pflanzjahr"] || "",
+					dist : parseFloat(require("geodist")(latitude, longitude, region.latitude, region.longitude))
+				};
+
+				return ret;
+			});
+			mytrees.sort(function(a, b) {
+				return a.dist - b.dist;
+			});
+			cb(mytrees);
+		});
+	}
+};
+
+exports.getTrees = getTrees;
+exports.isCached = isCached;
+exports.startCaching = startCaching;
+exprots.doImport = doImport;
