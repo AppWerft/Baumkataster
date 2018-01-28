@@ -48,8 +48,9 @@
         <module platform="android">com.alcoapps.actionbarextras</module>
         <module platform="android">dk.napp.downloadmanager</module>
         <module platform="commonjs">org.favo.promise</module>
-        
         <module platform="android" version="3.0.0">ti.map</module>
+        <module platform="android">ti.geolocationenabled</module>
+        <module platform="android">ti.animation</module>
     </modules>
     <deployment-targets>
         <target device="android">true</target>

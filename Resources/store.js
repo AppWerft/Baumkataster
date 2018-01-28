@@ -1,5 +1,5 @@
 var dbFile = (Ti.Platform.name === 'android' && Ti.Filesystem.isExternalStoragePresent()) ? Ti.Filesystem.getFile(Ti.Filesystem.externalStorageDirectory + 'TREES.sqlite') : Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory + 'TREES.sqlite');
-
+dbFile = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory + 'TREES.sqlite');
 var doImport = function() {
 	var speciesSQL = "CREATE TABLE IF NOT EXISTS `species` (`sorte_latein` TEXT UNIQUE, `sorte_deutsch` TEXT, `gattung_latein` TEXT,`gattung_deutsch`  TEXT,  `art_latein`  TEXT, `art_deutsch`  TEXT)";
 	var treesSQL = "CREATE TABLE IF NOT EXISTS `trees` (`baumid` NUMBER UNIQUE, latitude NUMBER,  longitude NUMBER, `sorte_latein`  TEXT, `kronendurchmesser`  TEXT, `stammumfang`  TEXT, `stand_bearbeitung`  TEXT, `pflanzjahr`  TEXT, `strasse`  TEXT, `hausnummer`  TEXT, `bezirk`  TEXT,`dist` NUMBER)";
@@ -64,17 +64,24 @@ var doImport = function() {
 	bar.write(foo.read());
 };
 
-var isChached = function() {
+var isCached = function() {
 	return dbFile.exists();
 };
 
-var startCaching = function() {
-	var NappDownloadManager = require("dk.napp.downloadmanager");
-	NappDownloadManager.addDownload({
+var startCaching = function(onStart, onProgress, onCompleted) {
+	var DownLoader = require("dk.napp.downloadmanager");
+	DownLoader.cleanUp();
+	DownLoader.addEventListener('progress', onProgress);
+	DownLoader.addEventListener('started', onStart);
+	DownLoader.addEventListener('completed', onCompleted);
+	DownLoader.addDownload({
+		headers : {
+			"Accept-Encoding" : "deflate, gzip;q=1.0, *;q=0.5"
+		},
 		name : 'Hamburger Bäume',
-		url : 'https://github.com/AppWerft/Baumkataster/blob/master/TREES.sqlite?raw=true',
+		url : 'https://github.com/AppWerft/Baumkataster/blob/master/TREES.sqlite?raw=true&zuf=' + Math.random(),
 		filePath : dbFile.nativePath,
-		priority : NappDownloadManager.DOWNLOAD_PRIORITY_NORMAL
+		priority : DownLoader.DOWNLOAD_PRIORITY_NORMAL
 	});
 };
 
@@ -145,4 +152,4 @@ var getTrees = function(region, cb) {
 exports.getTrees = getTrees;
 exports.isCached = isCached;
 exports.startCaching = startCaching;
-exprots.doImport = doImport;
+exports.doImport = doImport;

@@ -23,11 +23,8 @@ var DELTA_Y = MAX_Y - MIN_Y;
 // https://jira.appcelerator.org/browse/TIMOB-9434
 
 if (isAndroid) {
-	Ti.Geolocation.getCurrentHeading(function() {
-	});
 	Ti.Geolocation.accuracy = Ti.Geolocation.ACCURACY_LOW;
 } else {
-
 	Ti.Geolocation.distanceFilter = 100;
 	//Ti.Geolocation.showCalibration = false;
 	Ti.Geolocation.preferredProvider = "gps";

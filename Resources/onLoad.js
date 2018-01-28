@@ -10,7 +10,7 @@ module.exports = function(_event) {
 					showAsAction : Ti.Android.SHOW_AS_ACTION_IF_ROOM,
 					icon : "/assets/images/reload.png"
 				});
-				item.addEventListener("click", _event.source.updateListAndMap);
+			//	item.addEventListener("click", _event.source.updateListAndMap);
 
 			};
 			activity.invalidateOptionsMenu();
