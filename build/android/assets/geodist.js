@@ -1,1 +1,1 @@
-/Users/fuerst/Documents/MLearning/Baumkataster/Resources/geodist.js
+module.exports=function(lat1,lon1,lat2,lon2){var _Mathsqrt=Math.sqrt,_Mathcos=Math.cos,_Mathsin=Math.sin,R=6371000,dLat=deg2rad(lat2-lat1),dLon=deg2rad(lon2-lon1),a=_Mathsin(dLat/2)*_Mathsin(dLat/2)+_Mathcos(deg2rad(lat1))*_Mathcos(deg2rad(lat2))*_Mathsin(dLon/2)*_Mathsin(dLon/2),c=2*Math.atan2(_Mathsqrt(a),_Mathsqrt(1-a)),d=R*c;return d};function deg2rad(deg){return deg*(Math.PI/180)};

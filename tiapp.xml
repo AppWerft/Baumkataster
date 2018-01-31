@@ -2,9 +2,9 @@
 <ti:app xmlns:ti="http://ti.appcelerator.org">
     <id>de.appwerft.baumkataster</id>
     <name>Baumkataster</name>
-    <version>1.0</version>
+    <version>1.0.4</version>
     <publisher>fuerst</publisher>
-    <url/>
+    <url>undefined</url>
     <description>Baumkataster Hamburgs</description>
     <copyright>2018 by fuerst</copyright>
     <icon>appicon.png</icon>
@@ -48,7 +48,7 @@
         <module platform="android">com.alcoapps.actionbarextras</module>
         <module platform="android">dk.napp.downloadmanager</module>
         <module platform="commonjs">org.favo.promise</module>
-        <module platform="android" version="3.0.0">ti.map</module>
+        <module platform="android" version="3.0.1">ti.map</module>
         <module platform="android">ti.geolocationenabled</module>
         <module platform="android">ti.animation</module>
     </modules>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="de.appwerft.baumkataster" android:versionCode="1" android:versionName="1.0.0">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="de.appwerft.baumkataster" android:versionCode="5" android:versionName="1.0.4">
 	<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="25"/>
-	<application android:icon="@drawable/appicon" android:label="baumkataster" android:name="BaumkatasterApplication" android:debuggable="false" android:theme="@style/Theme.AppCompat" android:resizeableActivity="true">
+	<application android:icon="@drawable/appicon" android:label="Baumkataster" android:name="BaumkatasterApplication" android:debuggable="false" android:theme="@style/Theme.AppCompat" android:resizeableActivity="true">
 		<activity android:name=".BaumkatasterActivity" android:label="@string/app_name" android:theme="@style/Theme.Titanium" android:configChanges="keyboardHidden|orientation|fontScale|screenSize|smallestScreenSize|screenLayout|density">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>

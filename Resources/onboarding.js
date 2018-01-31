@@ -1,12 +1,15 @@
 module.exports = function(cb) {
 	var GeoOK = CacheOK = false;
+	Log("start on boarding");
 	var $ = Ti.UI.createWindow({
 		theme : "Theme.Dialog", // full transparent
 		backgroundColor : "transparent"
 	});
 	var onOpen = function() {
+		Log("onboarding opened");
 		require('vendor/permissions').requestPermissions(['ACCESS_FINE_LOCATION', 'CAMERA'], function(res) {
 			console.log(require("ti.geolocationenabled").getProviders());
+			Log("getpermission");
 			if (!!res) {
 				if (require("ti.geolocationenabled").getLocationServicesEnabled() == false) {
 					var alertDlg = Titanium.UI.createAlertDialog({
@@ -26,7 +29,6 @@ module.exports = function(cb) {
 							});
 						}
 					});
-
 					alertDlg.show();
 				} else
 					GeoOK = true;
@@ -36,28 +38,42 @@ module.exports = function(cb) {
 	};
 	var dialog = Ti.UI.createView({
 		width : Ti.UI.FILL,
-		height :Ti.UI.FILL,
+		height : Ti.UI.FILL,
 		bottom : 0,
 		backgroundColor : "transparent"
 	});
+	console.log("dialog created");
+	dialog.add(Ti.UI.createView({
+		height : 80,
+		left : 0,
+		bottom : 0,
+		zIndex : 9,
+		backgroundColor : "#8000"
 
+	}));
 	dialog.add(Ti.UI.createLabel({
 		font : {
 			fontSize : 64,
 			fontWeight : 'bold'
 		},
-		height:Ti.UI.SIZE,
+		height : Ti.UI.SIZE,
 		color : BLUE,
-		bottom : 0
+		textAlign : "right",
+		width : Ti.UI.FILL,
+		bottom : 0,
+		zIndex : 99,
+		backgroundColor : "#8fff"
 
 	}));
 	dialog.add(require("ti.animation").createLottieView({
-		file : 'assets/welle.json',
+		file : 'assets/gears.json',
 		loop : true,
-		bottom : 0,
+		bottom : 90,
 		width : Ti.UI.FILL,
-
-		height : 400,
+		transform : Ti.UI.create2DMatrix({
+			scale : 3.0
+		}),
+		height : "50%",
 		touchEnabled : false,
 		zindex : 999,
 		autoStart : true
@@ -66,9 +82,14 @@ module.exports = function(cb) {
 	var Store = require("store");
 	if (Ti.App.Properties.hasProperty("CacheOK") == false) {
 		Store.startCaching(function() {
+			console.log("caching started");
 			$.add(dialog);
+			Ti.UI.createNotification({duration:5000,
+				message : "Daten von 225000 Bäumen werden einmalig runtergeladen."
+			}).show();
 		}, function(e) {
-			dialog.children[0].setText((100 * e.downloadedBytes / e.totalBytes).toFixed(1) + "%");
+			dialog.children[1].setText(" " + (100 * e.downloadedBytes / e.totalBytes).toFixed(1) + "% ");
+			dialog.children[0].setWidth((100 * e.downloadedBytes / e.totalBytes) + "% ");
 		}, function() {
 			console.log("CacheOK");
 			CacheOK = true;
@@ -76,7 +97,6 @@ module.exports = function(cb) {
 			Ti.App.Properties.setBool("CacheOK", true);
 		});
 	} else {
-		console.log("always cached.");
 		CacheOK = true;
 		close();
 	}
@@ -87,6 +107,5 @@ module.exports = function(cb) {
 			cb();
 		}
 	}
-
 	return $;
 };

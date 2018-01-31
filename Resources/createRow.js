@@ -19,9 +19,8 @@ module.exports = function(tree) {
 		color : "black",
 		font : {
 			fontSize : 14,
-
 		},
-		text : "Krone/Stamm:  " + tree.kronendurchmesser + "/" + tree.stammumfang 
+		text : "∅ Krone/Stamm:  " + tree.kronendurchmesser + "/" + tree.stammumfang 
 	}));
 	row.add(Ti.UI.createLabel({
 		right : 5,
@@ -42,7 +41,7 @@ module.exports = function(tree) {
 			fontSize : 14,
 
 		},
-		text : tree.strasse + " " + tree.hausnummer
+		text : "Standort: " +tree.strasse + " " + tree.hausnummer
 	}));
 	row.add(Ti.UI.createLabel({
 		left : 10,
