@@ -1,8 +1,6 @@
 module.exports = function(region, cb) {
-	
-	
-	
-	var WFS = require("ti.wfs").createWFS("https://geodienste.hamburg.de/HH_WFS_Strassenbaumkataster", "2.0.0");
+
+	var WFS = require("ti.wfs").createWFS("http://geodienste.hamburg.de/HH_WFS_Strassenbaumkataster", "2.0.0");
 
 	WFS.getFeature({
 		region : region,
@@ -20,7 +18,7 @@ module.exports = function(region, cb) {
 			var t = tree["app:strassenbaumkataster"];
 			var latitude = t["app:geom"]["gml:Point"]["gml:pos"].split(" ")[0];
 			var longitude = t["app:geom"]["gml:Point"]["gml:pos"].split(" ")[1];
-			
+
 			var ret = {
 				"baumid" : t["gml:id"].split("_")[2],
 				"gattung_latein" : t["app:gattung_latein"],
@@ -34,7 +32,7 @@ module.exports = function(region, cb) {
 				stammumfang : t["app:stammumfangzahl"] || "",
 				strasse : t["app:strasse"] || "",
 				hausnummer : t["app:hausnummer"] || "",
-				
+
 				bezirk : t["app:bezirk"] || "",
 				latitude : latitude,
 				longitude : longitude,
@@ -42,7 +40,7 @@ module.exports = function(region, cb) {
 				pflanzjahr : t["app:pflanzjahr"] || "",
 				dist : parseFloat(require("geodist")(latitude, longitude, region.latitude, region.longitude))
 			};
-			
+
 			return ret;
 		});
 		mytrees.sort(function(a, b) {

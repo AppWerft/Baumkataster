@@ -1,5 +1,7 @@
 module.exports = function() {
-	var $ = Ti.UI.createView();
+	var $ = Ti.UI.createView({
+		backgroundColor : BLUE
+	});
 	var Map = require("ti.map");
 
 	var mapView = Map.createView({
@@ -8,8 +10,8 @@ module.exports = function() {
 		region : {
 			latitude : 53.5535071,
 			longitude : 9.9899668,
-			latitudeDelta : 0.08,
-			longitudeDelta : 0.08
+			latitudeDelta : 0.01,
+			longitudeDelta : 0.01
 		},
 		mapType : Map.NORMAL_TYPE,
 		mapToolbarEnabled : false,
@@ -60,10 +62,12 @@ module.exports = function() {
 				latitudeDelta : 0.001,
 				longitudeDelta : 0.001
 			});
-			
+
 			if (!trees || !trees[0]) {
 				mapView.deselectAnnotation(marker);
-				Ti.UI.createNotification({message:"Für diesen Standort gibt es leider keine Bauminformationen."}).show();
+				Ti.UI.createNotification({
+					message : "Für diesen Standort gibt es leider keine Bauminformationen."
+				}).show();
 				return;
 			}
 			marker.title = trees[0]["sorte_latein"];

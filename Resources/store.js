@@ -1,6 +1,7 @@
 var DBNAME = 'TREES';
 
 var doImport = function() {
+	Log("doImport started");
 	var speciesSQL = "CREATE TABLE IF NOT EXISTS `species` (`sorte_latein` TEXT UNIQUE, `sorte_deutsch` TEXT, `gattung_latein` TEXT,`gattung_deutsch`  TEXT,  `art_latein`  TEXT, `art_deutsch`  TEXT)";
 	var treesSQL = "CREATE TABLE IF NOT EXISTS `trees` (`baumid` NUMBER UNIQUE, latitude NUMBER,  longitude NUMBER, `sorte_latein`  TEXT, `kronendurchmesser`  TEXT, `stammumfang`  TEXT, `stand_bearbeitung`  TEXT, `pflanzjahr`  TEXT, `strasse`  TEXT, `hausnummer`  TEXT, `bezirk`  TEXT,`dist` NUMBER)";
 
@@ -16,8 +17,9 @@ var doImport = function() {
 		maxx : 53.72818020,
 		maxy : 10.32027293
 	};
-	var DELTA = 0.012;
+	var DELTA = 0.02;
 	var regions = [];
+	console.log("DB initiated");
 	for (var x = BB.minx; x < BB.maxx; x += DELTA) {
 		for (var y = BB.miny; y < BB.maxy; y += DELTA) {
 			regions.push({
@@ -28,10 +30,11 @@ var doImport = function() {
 			});
 		}
 	}
-	function getData() {
+	var i = 0;
+	function getDataFromWFS() {
 
 		if (i < regions.length - 1) {
-
+			Log(i + " getTrees");
 			require("getTrees")(regions[i], function(trees) {
 				i++;
 				console.log(trees.length + "     " + i + "/" + (regions.length - 1));
@@ -43,25 +46,25 @@ var doImport = function() {
 						link.execute("INSERT OR REPLACE INTO species VALUES (?,?,?,?,?,?)", tree["sorte_latein"], tree["sorte_deutsch"], tree["gattung_latein"], tree["gattung_deutsch"], tree["art_latein"], tree["art_deutsch"]);
 					});
 					link.execute("COMMIT");
+					console.log((link.file.size / 1000000).toFixed(3));
 					link.close();
 				}
+				getDataFromWFS();
 			});
 
-			console.log((link.file.size / 1000000).toFixed(3));
+		} else {
+			
+			var link = Ti.Database.open(DBNAME);
+			var foo = link.file;
+			var bar = Ti.Filesystem.getFile(Ti.Filesystem.externalStorageDirectory, DBNAME);
+			bar.write(foo.read());
+			link.close();
+			console.log("adb pull " + bar.nativePath);
 		}
-
-		getData();
-
 	};
 
-	var i = 0;
-	getData();
-	var link = Ti.Database.open(DBNAME);
+	getDataFromWFS();
 
-	var foo = link.file;
-	link.close();
-	bar = Ti.Filesystem.getFile(Ti.Filesystem.externalStorageDirectory, "TREES.sqlite");
-	bar.write(foo.read());
 };
 
 var isCached = function() {
@@ -78,9 +81,9 @@ var startCaching = function(onStart, onProgress, onCompleted) {
 	DownLoader.addEventListener('progress', onProgress);
 	DownLoader.addEventListener('started', onStart);
 	DownLoader.addEventListener('completed', onCompleted);
-	DownLoader.addEventListener('failed',function(){
+	DownLoader.addEventListener('failed', function() {
 		alert("Irgendetwas mit dem Internet stimmt nicht.");
-	} );
+	});
 	DownLoader.addDownload({
 		headers : {
 			"Accept-Encoding" : "deflate, gzip;q=1.0, *;q=0.5"
@@ -100,8 +103,8 @@ var getTrees = function(region, cb) {
 		var lat = parseFloat(region.latitude);
 		var lon = parseFloat(region.longitude);
 		var sql = "SELECT species.*,trees.* FROM species, trees WHERE trees.sorte_latein = species.sorte_latein AND " + "trees.latitude>" + (lat - d) + " AND trees.latitude<" + (lat + d) + " AND trees.longitude>" + (lon - d) + " AND trees.longitude<" + (lon + d);
-	//	console.log(sql);
-	Log("Start DB");
+		//	console.log(sql);
+		Log("Start DB");
 		var link = Ti.Database.open(DBNAME);
 		var res = link.execute(sql);
 		link.close();
@@ -110,15 +113,15 @@ var getTrees = function(region, cb) {
 			var latitude = res.fieldByName('latitude');
 			var longitude = res.fieldByName('longitude');
 			trees.push({
-				latitude: latitude,
-				longitude: longitude,
+				latitude : latitude,
+				longitude : longitude,
 				baumid : res.fieldByName('baumid'),
-				"sorte_latein" : res.fieldByName("sorte_latein")|| "",
-				"sorte_deutsch" : res.fieldByName("sorte_deutsch")|| "",
-				"gattung_latein" : res.fieldByName("gattung_latein")|| "",
-				"gattung_deutsch" : res.fieldByName("gattung_deutsch")|| "",
-				"art_latein" : res.fieldByName("sorte_latein")|| "",
-				"art_deutsch" : res.fieldByName("sorte_deutsch")|| "",
+				"sorte_latein" : res.fieldByName("sorte_latein") || "",
+				"sorte_deutsch" : res.fieldByName("sorte_deutsch") || "",
+				"gattung_latein" : res.fieldByName("gattung_latein") || "",
+				"gattung_deutsch" : res.fieldByName("gattung_deutsch") || "",
+				"art_latein" : res.fieldByName("sorte_latein") || "",
+				"art_deutsch" : res.fieldByName("sorte_deutsch") || "",
 				kronendurchmesser : res.fieldByName("kronendurchmesser") || "",
 				stammumfang : res.fieldByName("stammumfang") || "",
 				strasse : res.fieldByName("strasse") || "",

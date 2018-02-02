@@ -4,7 +4,7 @@
     <name>Baumkataster</name>
     <version>1.0.4</version>
     <publisher>fuerst</publisher>
-    <url>undefined</url>
+    <url>http://hamburger-appwerft.de</url>
     <description>Baumkataster Hamburgs</description>
     <copyright>2018 by fuerst</copyright>
     <icon>appicon.png</icon>
@@ -43,7 +43,6 @@
     </ios>
     <android xmlns:android="http://schemas.android.com/apk/res/android"/>
     <modules>
-        <module platform="android">ti.wfs</module>
         <module platform="android">pw.custom.androidcamera</module>
         <module platform="android">com.alcoapps.actionbarextras</module>
         <module platform="android">dk.napp.downloadmanager</module>
@@ -51,6 +50,7 @@
         <module platform="android" version="3.0.1">ti.map</module>
         <module platform="android">ti.geolocationenabled</module>
         <module platform="android">ti.animation</module>
+        <module platform="android">ti.wfs</module>
     </modules>
     <deployment-targets>
         <target device="android">true</target>

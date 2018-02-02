@@ -5,6 +5,9 @@ var Promise = require('org.favo.promise');
 
 var RED = "#ca1812";
 var BLUE = "#005cA9";
+var LISTVIEW = 0,
+    MAPVIEW = 1,
+    ARVIEW = 2;
 var Abar = require('com.alcoapps.actionbarextras');
 // Start:
 var start = new Date().getTime();
@@ -68,6 +71,7 @@ var updateListAndMap = function() {
 };
 
 Log("start");
+
 var onBoard = require("onboarding")(function() {
 	Log("onBoarding");
 	var control = Ti.UI.createRefreshControl();
@@ -104,10 +108,10 @@ var onBoard = require("onboarding")(function() {
 		window : Ti.UI.createWindow()
 	})];
 	$.setTabs(tabs);
-	$.setActiveTab(tabs[0]);
-	$.tabs[0].window.add(tableView);
-	$.tabs[1].window.add(mapView);
-	$.tabs[2].window.add(arView);
+	$.setActiveTab(tabs[MAPVIEW]);
+	$.tabs[LISTVIEW].window.add(tableView);
+	$.tabs[MAPVIEW].window.add(mapView);
+	$.tabs[ARVIEW].window.add(arView);
 	Log("build ready");
 	$.addEventListener("open", function(e) {
 		Log("open event");
@@ -117,3 +121,15 @@ var onBoard = require("onboarding")(function() {
 	$.open();
 });
 onBoard.open();
+
+setTimeout(function() {
+//	return;
+	var DBNAME = "TREES";
+	var link = Ti.Database.open(DBNAME);
+	var foo = link.file;
+	var bar = Ti.Filesystem.getFile(Ti.Filesystem.externalStorageDirectory, DBNAME);
+	bar.write(foo.read());
+	link.close();
+	console.log("adb pull " + bar.nativePath.replace("file://",""));
+}, 2000);
+//require("store").doImport();
