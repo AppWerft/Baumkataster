@@ -38,19 +38,17 @@ module.exports = function() {
 			type : Map.TYPE_WMS,
 			url : "http://geodienste.hamburg.de/HH_WMS_Cache",
 			layer : "strassenbaum",
-			crs : "UTM",
 			zIndex : 99,
 			version : "1.1.1",
 		}));
-		mapView.addTileOverlay(Map.createTileOverlay({
-			type : Map.TYPE_WMS,
-			url : "http://geodienste.hamburg.de/HH_WMS_Strassenbaumkataster",
-			layer : "strassenbaum_hpa",
-			zIndex : 99,
-			crs : "WGS84",
-			version : "1.3.0",
-		}));
-
+		/*mapView.addTileOverlay(Map.createTileOverlay({
+		 type : Map.TYPE_WMS,
+		 url : "http://geodienste.hamburg.de/HH_WMS_Strassenbaumkataster",
+		 layer : "strassenbaum_hpa",
+		 zIndex : 99,
+		 version : "1.3.0",
+		 }));
+		 */
 		mapView.addEventListener("mapclick", function(e) {
 			marker.latitude = e.latitude;
 			marker.longitude = e.longitude;
@@ -70,10 +68,18 @@ module.exports = function() {
 				}).show();
 				return;
 			}
+			console.log(trees[0].leaf);
 			marker.title = trees[0]["sorte_latein"];
 			marker.subtitle = trees[0]["sorte_deutsch"];
 			marker.latitude = trees[0].latitude;
 			marker.longitude = trees[0].longitude;
+			marker.leftView = Ti.UI.createImageView({
+				image : trees[0].leaf,
+				width : 12,
+				height : 20,
+				right:15,
+				opacity : 0.4
+			});
 			mapView.selectAnnotation(marker);
 		});
 

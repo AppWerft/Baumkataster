@@ -1,4 +1,7 @@
-var DBNAME = 'TREES';
+var DBNAME = 'TREESv2';
+function capitalizeFirstLetter(string) {
+	return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
 var doImport = function() {
 	Log("doImport started");
@@ -53,7 +56,7 @@ var doImport = function() {
 			});
 
 		} else {
-			
+
 			var link = Ti.Database.open(DBNAME);
 			var foo = link.file;
 			var bar = Ti.Filesystem.getFile(Ti.Filesystem.externalStorageDirectory, DBNAME);
@@ -74,15 +77,21 @@ var isCached = function() {
 var startCaching = function(onStart, onProgress, onCompleted) {
 	var test = Ti.Database.open("TEST");
 	var filePath = test.file.nativePath.replace("TEST", DBNAME);
-	console.log(filePath);
 	test.close();
+	Ti.Filesystem.getFile(filePath).deleteFile();
 	var DownLoader = require("dk.napp.downloadmanager");
 	DownLoader.cleanUp();
 	DownLoader.addEventListener('progress', onProgress);
 	DownLoader.addEventListener('started', onStart);
-	DownLoader.addEventListener('completed', onCompleted);
+	DownLoader.addEventListener('completed', function() {
+		var link = Ti.Database.open(DBNAME);
+		link.execute("CREATE INDEX itrees ON trees(sorte_latein)");
+		link.execute("CREATE INDEX ispecies ON species(sorte_latein)");
+		link.close();
+		onCompleted();
+	});
 	DownLoader.addEventListener('failed', function() {
-		alert("Irgendetwas mit dem Internet stimmt nicht.");
+		alert("Irgend etwas mit dem Internet stimmt nicht.");
 	});
 	DownLoader.addDownload({
 		headers : {
@@ -112,6 +121,8 @@ var getTrees = function(region, cb) {
 		while (res.isValidRow()) {
 			var latitude = res.fieldByName('latitude');
 			var longitude = res.fieldByName('longitude');
+			var leaf = '/assets/tree_leaves/' + capitalizeFirstLetter(res.fieldByName("art_latein").replace(" x "," ")) + ' 1.png';
+			
 			trees.push({
 				latitude : latitude,
 				longitude : longitude,
@@ -120,8 +131,9 @@ var getTrees = function(region, cb) {
 				"sorte_deutsch" : res.fieldByName("sorte_deutsch") || "",
 				"gattung_latein" : res.fieldByName("gattung_latein") || "",
 				"gattung_deutsch" : res.fieldByName("gattung_deutsch") || "",
-				"art_latein" : res.fieldByName("sorte_latein") || "",
-				"art_deutsch" : res.fieldByName("sorte_deutsch") || "",
+				"art_latein" : res.fieldByName("art_latein") || "",
+				leaf : leaf,
+				"art_deutsch" : res.fieldByName("art_deutsch") || "",
 				kronendurchmesser : res.fieldByName("kronendurchmesser") || "",
 				stammumfang : res.fieldByName("stammumfang") || "",
 				strasse : res.fieldByName("strasse") || "",
@@ -133,7 +145,6 @@ var getTrees = function(region, cb) {
 			res.next();
 		}
 		res.close();
-		Log("stop cursor");
 		trees.sort(function(a, b) {
 			return a.dist - b.dist;
 		});
@@ -143,6 +154,102 @@ var getTrees = function(region, cb) {
 	}
 };
 
+exports.getGattungen = function() {
+	var gattungen = [];
+	var link = Ti.Database.open(DBNAME);
+	var res = link.execute("SELECT DISTINCT gattung_deutsch,gattung_latein from species WHERE gattung_deutsch is not null");
+	while (res.isValidRow()) {
+		var gattung = res.fieldByName("gattung_latein");
+		var sql = "SELECT count(trees.baumid) total from  species,trees WHERE species.sorte_latein=trees.sorte_latein AND gattung_latein='" + gattung + "'";
+		var subres = link.execute(sql);
+		var total = subres.fieldByName("total");
+		subres.close();
+		gattungen.push({
+			deutsch : res.fieldByName("gattung_deutsch") || "",
+			latein : gattung,
+			total : parseInt(total)
+		});
+		res.next();
+	}
+	link.close();
+	res.close();
+	gattungen.sort(function(a, b) {
+		return b.total - a.total;
+	});
+	return gattungen;
+};
+
+exports.getSorten = function(gattung) {
+	var arten = [];
+	var link = Ti.Database.open(DBNAME);
+	var res = link.execute('SELECT DISTINCT sorte_deutsch, sorte_latein from species WHERE gattung_latein=?', gattung);
+	while (res.isValidRow()) {
+		var art = res.fieldByName("sorte_latein");
+		var sql = 'SELECT count(trees.baumid) total from species,trees WHERE species.sorte_latein=trees.sorte_latein AND trees.sorte_latein="' + art + '"';
+		var subres = link.execute(sql);
+		var total = subres.fieldByName("total");
+		subres.close();
+		arten.push({
+			deutsch : res.fieldByName("sorte_deutsch") || "",
+			latein : art || "",
+			total : parseInt(total)
+		});
+		res.next();
+	}
+	res.close();
+	link.close();
+	arten.sort(function(a, b) {
+		return b.total - a.total;
+	});
+	return arten;
+};
+
+exports.getTreesBySort = function(sorte) {
+	var trees = [];
+	var xmin,
+	    ymin,
+	    xmax,
+	    ymax;
+	var link = Ti.Database.open(DBNAME);
+	var res = link.execute('SELECT latitude,longitude, strasse || " " || hausnummer adresse,pflanzjahr from trees WHERE sorte_latein="' + sorte + '"');
+	var ndx = 0;
+	while (res.isValidRow()) {
+		var lat = res.field(0, Ti.Database.FIELD_TYPE_DOUBLE);
+		var lng = res.field(1, Ti.Database.FIELD_TYPE_DOUBLE);
+		if (!ndx) {//initialization
+			xmin = xmax = lng;
+			ymin = ymax = lat;
+		} else {// feeding boundary
+			if (lng > xmax)
+				xmax = lng;
+			if (lng < xmin)
+				xmin = lng;
+			if (lat > ymax)
+				ymax = lat;
+			if (lat < ymin)
+				ymin = lat;
+		}
+		trees.push({
+			lat : lat,
+			lng : lng,
+			title : res.field(2, Ti.Database.FIELD_TYPE_STRING),
+			subtitle : "Pflanzjahr: " + res.field(3, Ti.Database.FIELD_TYPE_STRING)
+		});
+		ndx++;
+		res.next();
+	}
+	res.close();
+	link.close();
+	return {
+		trees : trees,
+		region : {
+			latitude : (ymin + ymax) / 2,
+			longitude : (xmin + xmax) / 2,
+			latitudeDelta : (ymax - ymin) * 1.2 || 0.05,
+			longitudeDelta : (xmax - xmin) * 1.2 || 0.05
+		}
+	};
+};
 exports.getTrees = getTrees;
 exports.isCached = isCached;
 exports.startCaching = startCaching;

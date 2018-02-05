@@ -1,0 +1,1 @@
+/Users/fuerst/Documents/MLearning/Baumkataster/Resources/dbgattungen.js

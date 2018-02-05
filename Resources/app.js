@@ -7,7 +7,8 @@ var RED = "#ca1812";
 var BLUE = "#005cA9";
 var LISTVIEW = 0,
     MAPVIEW = 1,
-    ARVIEW = 2;
+    ARVIEW = 2,DBVIEW=3;
+    
 var Abar = require('com.alcoapps.actionbarextras');
 // Start:
 var start = new Date().getTime();
@@ -73,7 +74,6 @@ var updateListAndMap = function() {
 Log("start");
 
 var onBoard = require("onboarding")(function() {
-	Log("onBoarding");
 	var control = Ti.UI.createRefreshControl();
 	control.addEventListener('refreshstart', function(e) {
 		setTimeout(function() {
@@ -106,13 +106,16 @@ var onBoard = require("onboarding")(function() {
 	}), Ti.UI.createTab({
 		title : "Augmented Reality",
 		window : Ti.UI.createWindow()
+	}), Ti.UI.createTab({
+		title : "Baum Datenbank",
+		window : Ti.UI.createWindow()
 	})];
 	$.setTabs(tabs);
 	$.setActiveTab(tabs[MAPVIEW]);
 	$.tabs[LISTVIEW].window.add(tableView);
 	$.tabs[MAPVIEW].window.add(mapView);
 	$.tabs[ARVIEW].window.add(arView);
-	Log("build ready");
+	$.tabs[DBVIEW].window.add(require("dbgattungen")());
 	$.addEventListener("open", function(e) {
 		Log("open event");
 		setTimeout(updateListAndMap, 100);
@@ -122,14 +125,4 @@ var onBoard = require("onboarding")(function() {
 });
 onBoard.open();
 
-setTimeout(function() {
-//	return;
-	var DBNAME = "TREES";
-	var link = Ti.Database.open(DBNAME);
-	var foo = link.file;
-	var bar = Ti.Filesystem.getFile(Ti.Filesystem.externalStorageDirectory, DBNAME);
-	bar.write(foo.read());
-	link.close();
-	console.log("adb pull " + bar.nativePath.replace("file://",""));
-}, 2000);
 //require("store").doImport();

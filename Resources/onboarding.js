@@ -80,7 +80,7 @@ module.exports = function(cb) {
 	}));
 	$.addEventListener("open", onOpen);
 	var Store = require("store");
-	if (Ti.App.Properties.hasProperty("CacheOK") == false) {
+	if (Ti.App.Properties.hasProperty("CacheOK_v2") == false) {
 		Store.startCaching(function() {
 			console.log("caching started");
 			$.add(dialog);
@@ -91,10 +91,10 @@ module.exports = function(cb) {
 			dialog.children[1].setText(" " + (100 * e.downloadedBytes / e.totalBytes).toFixed(1) + "% ");
 			dialog.children[0].setWidth((100 * e.downloadedBytes / e.totalBytes) + "% ");
 		}, function() {
-			console.log("CacheOK");
+			
 			CacheOK = true;
 			close();
-			Ti.App.Properties.setBool("CacheOK", true);
+			Ti.App.Properties.setBool("CacheOK_v2", true);
 		});
 	} else {
 		CacheOK = true;
