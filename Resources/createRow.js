@@ -1,22 +1,22 @@
 module.exports = function(tree) {
 	console.log(tree.leaf);
 	var row = Ti.UI.createTableViewRow({
-		height : 100,
+		height : 120,
 		backgroundColor : 'white'
 	});
 	row.add(Ti.UI.createLabel({
 		left : 60,
-		top : 5,
+		top : 5,right:10,
 		color : BLUE,
 		font : {
-			fontSize : 22,
+			fontSize : 20,
 			fontWeight : 'bold'
 		},
 		text : tree["sorte_latein"]
 	}));
 	row.add(Ti.UI.createLabel({
 		left : 60,
-		top : 35,
+		top : 55,
 		color : "black",
 		font : {
 			fontSize : 14,
@@ -25,8 +25,10 @@ module.exports = function(tree) {
 	}));
 	row.add(Ti.UI.createLabel({
 		right : 5,
-		bottom : 5,
-		color : "#bbb",
+		bottom : 0,
+		color : "#000",
+		opacity: 0.5,
+		height: 50,
 		font : {
 			fontSize : 27,
 			fontWeight : 'bold'
@@ -36,7 +38,7 @@ module.exports = function(tree) {
 	}));
 	row.add(Ti.UI.createLabel({
 		left : 60,
-		top : 55,
+		top : 75,
 		color : "black",
 		font : {
 			fontSize : 14,
@@ -46,7 +48,7 @@ module.exports = function(tree) {
 	}));
 	row.add(Ti.UI.createLabel({
 		left : 60,
-		top : 75,
+		top : 95,
 		color : "black",
 		font : {
 			fontSize : 14,

@@ -31,14 +31,12 @@ var onGeolocation = function(e) {
 	Ti.UI.createNotification({
 		message : "Position erkannt."
 	}).show();
-	Log("get Trees");
-	Log(JSON.stringify(e));
 	var trees = require("store").getTrees({
 		latitude : e.coords.latitude,
 		longitude : e.coords.longitude,
 		latitudeDelta : 0.015,
 		longitudeDelta : 0.015
-	}).slice(0, 77);
+	}).slice(0, 377);
 	Log("end of get Trees");
 	$.tabs[0].window.children[0].setData(trees.map(require("createRow")));
 	Log("end of setData to list");
@@ -79,7 +77,6 @@ var onBoard = require("onboarding")(function() {
 		setTimeout(function() {
 			control.endRefreshing();
 		}, 1000);
-		Log("P2R");
 		updateListAndMap();
 	});
 	var tableView = Ti.UI.createTableView({

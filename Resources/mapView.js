@@ -68,16 +68,17 @@ module.exports = function() {
 				}).show();
 				return;
 			}
-			console.log(trees[0].leaf);
-			marker.title = trees[0]["sorte_latein"];
-			marker.subtitle = trees[0]["sorte_deutsch"];
-			marker.latitude = trees[0].latitude;
-			marker.longitude = trees[0].longitude;
+			var tree = trees[0];
+			console.log("'"+tree.leaf+"'");
+			marker.title = tree["sorte_latein"];
+			marker.subtitle = tree["sorte_deutsch"];
+			marker.latitude = tree.latitude;
+			marker.longitude = tree.longitude;
 			marker.leftView = Ti.UI.createImageView({
-				image : trees[0].leaf,
+				image : tree.leaf,
 				width : 12,
 				height : 20,
-				right:15,
+				right : 15,
 				opacity : 0.4
 			});
 			mapView.selectAnnotation(marker);

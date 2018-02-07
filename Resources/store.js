@@ -4,7 +4,7 @@ function capitalizeFirstLetter(string) {
 }
 
 var doImport = function() {
-	Log("doImport started");
+	
 	var speciesSQL = "CREATE TABLE IF NOT EXISTS `species` (`sorte_latein` TEXT UNIQUE, `sorte_deutsch` TEXT, `gattung_latein` TEXT,`gattung_deutsch`  TEXT,  `art_latein`  TEXT, `art_deutsch`  TEXT)";
 	var treesSQL = "CREATE TABLE IF NOT EXISTS `trees` (`baumid` NUMBER UNIQUE, latitude NUMBER,  longitude NUMBER, `sorte_latein`  TEXT, `kronendurchmesser`  TEXT, `stammumfang`  TEXT, `stand_bearbeitung`  TEXT, `pflanzjahr`  TEXT, `strasse`  TEXT, `hausnummer`  TEXT, `bezirk`  TEXT,`dist` NUMBER)";
 
@@ -37,7 +37,6 @@ var doImport = function() {
 	function getDataFromWFS() {
 
 		if (i < regions.length - 1) {
-			Log(i + " getTrees");
 			require("getTrees")(regions[i], function(trees) {
 				i++;
 				console.log(trees.length + "     " + i + "/" + (regions.length - 1));
@@ -105,53 +104,53 @@ var startCaching = function(onStart, onProgress, onCompleted) {
 
 };
 
-var getTrees = function(region, cb) {
-	if (isCached()) {
-		var trees = [];
-		var d = parseFloat(region.latitudeDelta) / 2;
-		var lat = parseFloat(region.latitude);
-		var lon = parseFloat(region.longitude);
-		var sql = "SELECT species.*,trees.* FROM species, trees WHERE trees.sorte_latein = species.sorte_latein AND " + "trees.latitude>" + (lat - d) + " AND trees.latitude<" + (lat + d) + " AND trees.longitude>" + (lon - d) + " AND trees.longitude<" + (lon + d);
-		//	console.log(sql);
-		Log("Start DB");
-		var link = Ti.Database.open(DBNAME);
-		var res = link.execute(sql);
-		link.close();
-		Log("stop DB");
-		while (res.isValidRow()) {
-			var latitude = res.fieldByName('latitude');
-			var longitude = res.fieldByName('longitude');
-			var leaf = '/assets/tree_leaves/' + capitalizeFirstLetter(res.fieldByName("art_latein").replace(" x "," ")) + ' 1.png';
-			
-			trees.push({
-				latitude : latitude,
-				longitude : longitude,
-				baumid : res.fieldByName('baumid'),
-				"sorte_latein" : res.fieldByName("sorte_latein") || "",
-				"sorte_deutsch" : res.fieldByName("sorte_deutsch") || "",
-				"gattung_latein" : res.fieldByName("gattung_latein") || "",
-				"gattung_deutsch" : res.fieldByName("gattung_deutsch") || "",
-				"art_latein" : res.fieldByName("art_latein") || "",
-				leaf : leaf,
-				"art_deutsch" : res.fieldByName("art_deutsch") || "",
-				kronendurchmesser : res.fieldByName("kronendurchmesser") || "",
-				stammumfang : res.fieldByName("stammumfang") || "",
-				strasse : res.fieldByName("strasse") || "",
-				hausnummer : res.fieldByName("hausnummer") || "",
-				bezirk : res.fieldByName("bezirk") || "",
-				pflanzjahr : res.fieldByName("pflanzjahr") || "",
-				dist : parseFloat(require("geodist")(latitude, longitude, region.latitude, region.longitude))
-			});
-			res.next();
-		}
-		res.close();
-		trees.sort(function(a, b) {
-			return a.dist - b.dist;
-		});
-		Log("stop sort");
-		return trees;
+var getNearestTree = function(lat, lng) {
 
+};
+
+var getTrees = function(region) {
+
+	var trees = [];
+	var d = parseFloat(region.latitudeDelta) / 2;
+	var lat = parseFloat(region.latitude);
+	var lon = parseFloat(region.longitude);
+	var sql = "SELECT species.*,trees.* FROM species, trees WHERE trees.sorte_latein = species.sorte_latein AND " + "trees.latitude>" + (lat - d) + " AND trees.latitude<" + (lat + d) + " AND trees.longitude>" + (lon - d) + " AND trees.longitude<" + (lon + d);
+	//	console.log(sql);
+	var link = Ti.Database.open(DBNAME);
+	var res = link.execute(sql);
+	link.close();
+
+	while (res.isValidRow()) {
+		var latitude = res.fieldByName('latitude');
+		var longitude = res.fieldByName('longitude');
+		var leafPath = '/assets/tree_leaves/' + capitalizeFirstLetter(res.fieldByName("art_latein").replace(" x ", " ")) + ' 1.png';
+		trees.push({
+			latitude : latitude,
+			longitude : longitude,
+			baumid : res.fieldByName('baumid'),
+			"sorte_latein" : res.fieldByName("sorte_latein") || "",
+			"sorte_deutsch" : res.fieldByName("sorte_deutsch") || "",
+			"gattung_latein" : res.fieldByName("gattung_latein") || "",
+			"gattung_deutsch" : res.fieldByName("gattung_deutsch") || "",
+			"art_latein" : res.fieldByName("art_latein") || "",
+			leaf : leafPath,
+			"art_deutsch" : res.fieldByName("art_deutsch") || "",
+			kronendurchmesser : res.fieldByName("kronendurchmesser") || "",
+			stammumfang : res.fieldByName("stammumfang") || "",
+			strasse : res.fieldByName("strasse") || "",
+			hausnummer : res.fieldByName("hausnummer") || "",
+			bezirk : res.fieldByName("bezirk") || "",
+			pflanzjahr : res.fieldByName("pflanzjahr") || "",
+			dist : parseFloat(require("geodist")(latitude, longitude, region.latitude, region.longitude))
+		});
+		res.next();
 	}
+	res.close();
+	trees.sort(function(a, b) {
+		return a.dist - b.dist;
+	});
+	return trees;
+
 };
 
 exports.getGattungen = function() {
