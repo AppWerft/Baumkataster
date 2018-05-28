@@ -1,7 +1,7 @@
 module.exports = function(tree) {
 	console.log(tree.leaf);
 	var row = Ti.UI.createTableViewRow({
-		height : 120,
+		height : 130,
 		backgroundColor : 'white'
 	});
 	row.add(Ti.UI.createLabel({
@@ -34,7 +34,7 @@ module.exports = function(tree) {
 			fontWeight : 'bold'
 
 		},
-		text : Math.round(tree.dist) + "m"
+		text : tree.dist<2000 ? Math.round(tree.dist) + "m" : Math.round(tree.dist/1000) + "km"
 	}));
 	row.add(Ti.UI.createLabel({
 		left : 60,

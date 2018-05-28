@@ -2,7 +2,7 @@
 <ti:app xmlns:ti="http://ti.appcelerator.org">
     <id>de.appwerft.baumkataster</id>
     <name>Baumkataster</name>
-    <version>1.0.7</version>
+    <version>1.0.11</version>
     <publisher>fuerst</publisher>
     <url>http://hamburger-appwerft.de</url>
     <description>Baumkataster Hamburgs</description>
@@ -43,7 +43,6 @@
     </ios>
     <android xmlns:android="http://schemas.android.com/apk/res/android"/>
     <modules>
-        <module platform="android">pw.custom.androidcamera</module>
         <module platform="android">com.alcoapps.actionbarextras</module>
         <module platform="android">dk.napp.downloadmanager</module>
         <module platform="commonjs">org.favo.promise</module>
@@ -51,12 +50,13 @@
         <module platform="android">ti.geolocationenabled</module>
         <module platform="android">ti.animation</module>
         <module platform="android">ti.wfs</module>
+        <module platform="android">ti.cameraview</module>
     </modules>
     <deployment-targets>
         <target device="android">true</target>
         <target device="ipad">false</target>
-        <target device="iphone">false</target>
+        <target device="iphone">true</target>
     </deployment-targets>
-    <sdk-version>7.0.1.GA</sdk-version>
+    <sdk-version>7.1.0.GA</sdk-version>
     <property name="appc-app-id" type="string">5a6485317ebf184bd9627299</property>
 </ti:app>

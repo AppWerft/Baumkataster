@@ -4,7 +4,7 @@ function capitalizeFirstLetter(string) {
 }
 
 var doImport = function() {
-	
+
 	var speciesSQL = "CREATE TABLE IF NOT EXISTS `species` (`sorte_latein` TEXT UNIQUE, `sorte_deutsch` TEXT, `gattung_latein` TEXT,`gattung_deutsch`  TEXT,  `art_latein`  TEXT, `art_deutsch`  TEXT)";
 	var treesSQL = "CREATE TABLE IF NOT EXISTS `trees` (`baumid` NUMBER UNIQUE, latitude NUMBER,  longitude NUMBER, `sorte_latein`  TEXT, `kronendurchmesser`  TEXT, `stammumfang`  TEXT, `stand_bearbeitung`  TEXT, `pflanzjahr`  TEXT, `strasse`  TEXT, `hausnummer`  TEXT, `bezirk`  TEXT,`dist` NUMBER)";
 
@@ -108,14 +108,25 @@ var getNearestTree = function(lat, lng) {
 
 };
 
-var getTrees = function(region) {
-
+var getNearestTree = function(lat, lng) {
+	var radius = 10;
 	var trees = [];
-	var d = parseFloat(region.latitudeDelta) / 2;
-	var lat = parseFloat(region.latitude);
-	var lon = parseFloat(region.longitude);
-	var sql = "SELECT species.*,trees.* FROM species, trees WHERE trees.sorte_latein = species.sorte_latein AND " + "trees.latitude>" + (lat - d) + " AND trees.latitude<" + (lat + d) + " AND trees.longitude>" + (lon - d) + " AND trees.longitude<" + (lon + d);
-	//	console.log(sql);
+	while (trees.length < 1) {
+		trees = getTrees(lat, lng, radius);
+		radius *= 2;
+		Log("Radius="+radius);
+	};
+	return trees;
+};
+
+var getTrees = function(lat, lng, radius) {
+	var trees = [];
+	// convert radius in meter to deegres:
+	var Δ = 2 * radius * 360 / 40000000;
+
+	var lat = parseFloat(lat);
+	var lon = parseFloat(lng);
+	var sql = "SELECT species.*,trees.* FROM species, trees WHERE trees.sorte_latein = species.sorte_latein AND " + "trees.latitude>" + (lat - Δ) + " AND trees.latitude<" + (lat + Δ) + " AND trees.longitude>" + (lon - Δ) + " AND trees.longitude<" + (lon + Δ);
 	var link = Ti.Database.open(DBNAME);
 	var res = link.execute(sql);
 	link.close();
@@ -141,7 +152,7 @@ var getTrees = function(region) {
 			hausnummer : res.fieldByName("hausnummer") || "",
 			bezirk : res.fieldByName("bezirk") || "",
 			pflanzjahr : res.fieldByName("pflanzjahr") || "",
-			dist : parseFloat(require("geodist")(latitude, longitude, region.latitude, region.longitude))
+			dist : parseFloat(require("geodist")(latitude, longitude, lat, lng))
 		});
 		res.next();
 	}
@@ -250,6 +261,7 @@ exports.getTreesBySort = function(sorte) {
 	};
 };
 exports.getTrees = getTrees;
+exports.getNearestTree = getNearestTree;
 exports.isCached = isCached;
 exports.startCaching = startCaching;
 exports.doImport = doImport;

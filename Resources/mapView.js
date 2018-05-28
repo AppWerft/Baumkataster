@@ -23,7 +23,8 @@ module.exports = function() {
 		latitude : 53.0,
 		longitude : 10.0,
 		image : "/assets/images/null.png",
-		title : "Lade …"
+		title : "Lade …",
+		rightButton : "/assets/wiki.png"
 	});
 	mapView.addAnnotation(marker);
 	mapView.addEventListener("complete", function() {
@@ -49,17 +50,20 @@ module.exports = function() {
 		 version : "1.3.0",
 		 }));
 		 */
+		mapView.addEventListener("click", function(e) {
+			console.log(e.clicksource);
+			if (e.clicksource == "rightPane" && e.annotation && e.annotation.species) {
+				require("wiki.window")(e.annotation.species.replace("europea", "europaea").replace(" x "," × ")).open();
+			}
+		});
 		mapView.addEventListener("mapclick", function(e) {
 			marker.latitude = e.latitude;
 			marker.longitude = e.longitude;
 			marker.title = " Lade … ";
+
 			marker.subtitle = "";
-			var trees = require("store").getTrees({
-				latitude : e.latitude,
-				longitude : e.longitude,
-				latitudeDelta : 0.001,
-				longitudeDelta : 0.001
-			});
+			Log("mapclick");
+			var trees = require("store").getNearestTree(e.latitude, e.longitude);
 
 			if (!trees || !trees[0]) {
 				mapView.deselectAnnotation(marker);
@@ -69,19 +73,13 @@ module.exports = function() {
 				return;
 			}
 			var tree = trees[0];
-			console.log("'"+tree.leaf+"'");
+			Log("found tree nearby " + tree.leaf);
 			marker.title = tree["sorte_latein"];
-			marker.subtitle = tree["sorte_deutsch"];
+			marker.subtitle = tree["sorte_deutsch"] + " (" + tree.pflanzjahr + ")";
 			marker.latitude = tree.latitude;
 			marker.longitude = tree.longitude;
-			marker.leftView = Ti.UI.createImageView({
-				image : tree.leaf,
-				width : 12,
-				height : 20,
-				right : 15,
-				opacity : 0.4
-			});
-			mapView.selectAnnotation(marker);
+			marker.leftButton = tree.leaf;
+			marker.species = tree["art_latein"], mapView.selectAnnotation(marker);
 		});
 
 	});

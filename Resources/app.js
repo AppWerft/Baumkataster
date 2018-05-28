@@ -7,8 +7,9 @@ var RED = "#ca1812";
 var BLUE = "#005cA9";
 var LISTVIEW = 0,
     MAPVIEW = 1,
-    ARVIEW = 2,DBVIEW=3;
-    
+    ARVIEW = 2,
+    DBVIEW = 3;
+
 var Abar = require('com.alcoapps.actionbarextras');
 // Start:
 var start = new Date().getTime();
@@ -31,12 +32,7 @@ var onGeolocation = function(e) {
 	Ti.UI.createNotification({
 		message : "Position erkannt."
 	}).show();
-	var trees = require("store").getTrees({
-		latitude : e.coords.latitude,
-		longitude : e.coords.longitude,
-		latitudeDelta : 0.015,
-		longitudeDelta : 0.015
-	}).slice(0, 377);
+	var trees = require("store").getTrees(e.coords.latitude, e.coords.longitude, 500).slice(0, 377);
 	Log("end of get Trees");
 	$.tabs[0].window.children[0].setData(trees.map(require("createRow")));
 	Log("end of setData to list");

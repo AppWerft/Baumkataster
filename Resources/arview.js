@@ -46,7 +46,7 @@ module.exports = function(params) {
 		if (started)
 			return;
 		started = true;
-		$.add(require("pw.custom.androidcamera").createCameraView({
+		$.add(require("ti.cameraview").createView({
 			width : Ti.UI.FILL,
 			height : Ti.UI.FILL
 		}));
